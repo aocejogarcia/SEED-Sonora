@@ -18,6 +18,13 @@ library(stringr)
 
 #defunciones <- read_rds('../snsp_inteligencia/defunciones/defunciones_app.rds')
 #poblaciones <- readxl::read_xlsx('../snsp_inteligencia/defunciones/Poblaciones_Sonora.xlsx')
+
+#readxl::read_xlsx('../snsp_inteligencia/defunciones/DIAGNOSTICOS_20240416.xlsx') %>% 
+#  select(CATALOG_KEY, PRINMORTA, NOMBRE, CAPITULO) %>% 
+#  rename(CIECAUSABASICA = CATALOG_KEY) %>%
+#  right_join(defunciones) %>% 
+#  saveRDS('../snsp_inteligencia/defunciones/defunciones_app.rds')
+
 defunciones <- read_rds('defunciones_app.rds')
 poblaciones <- read_rds('Poblaciones_Sonora.rds')
 
@@ -103,6 +110,10 @@ ui <- dashboardPage(skin = 'red',
                                 fluidRow(
                                   #box(title = 'Unidades por nivel de atención por municipio',
                                   DTOutput('data1')#)
+                                ),
+                                fluidRow(
+                                  #box(title = 'Unidades por nivel de atención por municipio',
+                                  DTOutput('data2')#)
                                 )
                         )
                         )
@@ -444,8 +455,34 @@ server <- function(input, output, session) {
   ## Tabla No.1 ##
   output$data1 <- renderDT({
     defunciones <- def_cl() %>%
-      count(CIECAUSABASICA, CIECAUSABASICAD) %>%
-      rename(Casos = n, 'Código CIE-10' = CIECAUSABASICA, 'Causa de defunción' = CIECAUSABASICAD) %>% 
+      mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
+      count(PRINMORTA, CAPITULO) %>%
+      rename(Casos = n, 
+             #'Código CIE-10' = CIECAUSABASICA, 
+             #'Causa de defunción' = CIECAUSABASICAD, 
+             Grupo = PRINMORTA,
+             Descripción = CAPITULO) %>% 
+      cross_join(pob_cl()) %>% 
+      mutate('Tasa de mortalidad' = round(Casos/poblacion*100000, 1)) %>% 
+      arrange(desc(Casos)) %>% 
+      select(-poblacion) %>% 
+      datatable(extensions = 'Buttons', caption = 'Principales causas de defunción agrupadas', rownames = FALSE,
+                options = list(dom = 'Blfrtip',
+                               buttons = c('excel')#,
+                               #lengthMenu = list(c(-1),
+                               #                   c("All"))
+                ))
+  })
+  ## Tabla No.2 ##
+  output$data2 <- renderDT({
+    defunciones <- def_cl() %>%
+      mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
+      count(PRINMORTA, CIECAUSABASICA, CAPITULO, CIECAUSABASICAD) %>%
+      rename(Casos = n, 
+             'Código CIE-10' = CIECAUSABASICA, 
+             'Causa de defunción' = CIECAUSABASICAD, 
+             Grupo = PRINMORTA,
+             Descripción = CAPITULO) %>% 
       cross_join(pob_cl()) %>% 
       mutate('Tasa de mortalidad' = round(Casos/poblacion*100000, 1)) %>% 
       arrange(desc(Casos)) %>% 
@@ -457,7 +494,7 @@ server <- function(input, output, session) {
                                #                   c("All"))
                 ))
   })
-
+  ## Reactivity ##
   observeEvent(input$DSB, {
     municipios <- lista
     
