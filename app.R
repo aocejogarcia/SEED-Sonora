@@ -455,13 +455,12 @@ server <- function(input, output, session) {
   ## Tabla No.1 ##
   output$data1 <- renderDT({
     defunciones <- def_cl() %>%
-      mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
-      count(PRINMORTA, CAPITULO) %>%
+      #mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
+      count(CAPITULO) %>%
       rename(Casos = n, 
              #'Código CIE-10' = CIECAUSABASICA, 
              #'Causa de defunción' = CIECAUSABASICAD, 
-             Grupo = PRINMORTA,
-             Descripción = CAPITULO) %>% 
+             'Causas' = CAPITULO) %>% 
       cross_join(pob_cl()) %>% 
       mutate('Tasa de mortalidad' = round(Casos/poblacion*100000, 1)) %>% 
       arrange(desc(Casos)) %>% 
@@ -476,13 +475,12 @@ server <- function(input, output, session) {
   ## Tabla No.2 ##
   output$data2 <- renderDT({
     defunciones <- def_cl() %>%
-      mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
-      count(PRINMORTA, CIECAUSABASICA, CAPITULO, CIECAUSABASICAD) %>%
+      #mutate(PRINMORTA = substring(PRINMORTA, first = 1, last = 3)) %>% 
+      count(CAPITULO, CIECAUSABASICA, CIECAUSABASICAD) %>%
       rename(Casos = n, 
              'Código CIE-10' = CIECAUSABASICA, 
              'Causa de defunción' = CIECAUSABASICAD, 
-             Grupo = PRINMORTA,
-             Descripción = CAPITULO) %>% 
+             'Causas agrupadas' = CAPITULO) %>% 
       cross_join(pob_cl()) %>% 
       mutate('Tasa de mortalidad' = round(Casos/poblacion*100000, 1)) %>% 
       arrange(desc(Casos)) %>% 
