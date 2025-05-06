@@ -29,7 +29,7 @@ defunciones <- read_rds('defunciones_app.rds')
 poblaciones <- read_rds('Poblaciones_Sonora.rds')
 
 opciones_DSB <- defunciones %>%
-  filter(ENTIDADRESIDENCIA == 26) %>% 
+  filter(ENTIDADRESIDENCIA %in% 26) %>% 
   count(DSBRESIDENCIA, MUNICIPIORESIDENCIA) %>%
   filter(!is.na(DSBRESIDENCIA)) %>% 
   select(-n) %>% 
@@ -42,12 +42,12 @@ opciones_DSB <- defunciones %>%
   )
 # Distritos y municipios ----
 lista <- list(
-  '1' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 1],
-  '2' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 2],
-  '3' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 3],
-  '4' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 4],
-  '5' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 5],
-  '6' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA == 6],
+  '1' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 1],
+  '2' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 2],
+  '3' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 3],
+  '4' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 4],
+  '5' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 5],
+  '6' = opciones_DSB$MUN[opciones_DSB$DSBRESIDENCIA %in% 6],
   'Todos' = opciones_DSB$MUN
 )
 
@@ -58,6 +58,7 @@ lista_edad <- list(
   'De 1 a 4 años' = c(seq(1,4), 'pobm_00_04'), 
   'De 5 a 9 años' = c(seq(5,9), 'pobm_05_09'), 
   'De 10 a 19 años' = c(seq(10,19), 'pobm_10_14', 'pobm_15_19'), 
+  'De 20 a 59 años' = c(seq(20,59), 'pobm_20_24', 'pobm_25_29', 'pobm_30_34', 'pobm_35_39', 'pobm_40_44', 'pobm_45_49', 'pobm_50_54', 'pobm_55_59'), 
   '60 años y más' = c(seq(60,124), 'pobm_60_64', 'pobm_65_mm'), 
   'General' = c(seq(0, 124), unique(poblaciones$EDAD_QUIN))
 )
@@ -75,7 +76,7 @@ ui <- dashboardPage(skin = 'red',
                     dashboardSidebar(
                       sidebarMenu(
                         menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
-                        ),
+                      ),
                       selectInput(inputId = 'AÑO',
                                   label = 'Año de defunción',
                                   choices = c(2020, 2021, 2022, 2023, 2024, 2025),
@@ -90,7 +91,7 @@ ui <- dashboardPage(skin = 'red',
                                   selected = 'Todos'),
                       selectInput(inputId = 'EDAD',
                                   label = 'Seleccione el grupo de edad',
-                                  choices = c('Menores de 1 año', 'De 1 a 4 años', 'De 5 a 9 años', 'De 10 a 19 años', '60 años y más', 'General'),
+                                  choices = c('Menores de 1 año', 'De 1 a 4 años', 'De 5 a 9 años', 'De 10 a 19 años', 'De 20 a 59 años', '60 años y más', 'General'),
                                   selected = 'General'),
                       selectInput(inputId = 'SEXO',
                                   label = 'Seleccione el sexo',
@@ -116,338 +117,338 @@ ui <- dashboardPage(skin = 'red',
                                   DTOutput('data2')#)
                                 )
                         )
-                        )
                       )
                     )
+)
 
 
 server <- function(input, output, session) {
   ## Base de datos ##
   pob_cl <- reactive({
-    if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>% 
-        filter(AÑO == input$AÑO) %>% 
+        filter(AÑO %in% input$AÑO) %>% 
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               AÑO == input$AÑO) %>%
+        filter(DSB %in% input$DSB,
+               AÑO %in% input$AÑO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(MUN == input$MUNICIPIO,
-               AÑO == input$AÑO) %>%
+        filter(MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO) %>%
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO %in% 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
-          EDAD_QUIN %in% lista_edad[[input$EDAD_QUIN]]) %>%
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
+          EDAD_QUIN %in% lista_edad[[input$EDAD]]) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>% 
-        filter(AÑO == input$AÑO, 
-               SEXO == input$SEXO) %>% 
+        filter(AÑO %in% input$AÑO, 
+               SEXO %in% input$SEXO) %>% 
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               AÑO == input$AÑO, 
-               SEXO == input$SEXO) %>%
+        filter(DSB %in% input$DSB,
+               AÑO %in% input$AÑO, 
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(MUN == input$MUNICIPIO,
-               AÑO == input$AÑO, 
-               SEXO == input$SEXO) %>%
+        filter(MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO, 
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO, 
-               SEXO == input$SEXO) %>%
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO, 
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(DSB == input$DSB,
-               #MUN == input$MUNICIPIO,
-               AÑO == input$AÑO,
+        filter(DSB %in% input$DSB,
+               #MUN %in% input$MUNICIPIO,
+               AÑO %in% input$AÑO,
                EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-               SEXO == input$SEXO) %>%
+               SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-          SEXO == input$SEXO) %>%
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-          SEXO == input$SEXO) %>%
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-          SEXO == input$SEXO) %>%
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'Menores de 1 año' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'Menores de 1 año' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-          SEXO == input$SEXO) %>%
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.20)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'De 1 a 4 años' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'De 1 a 4 años' & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
           EDAD_QUIN %in% lista_edad[[input$EDAD]], 
-          SEXO == input$SEXO) %>%
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T)*.80)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & !input$EDAD %in% c('General', 'De 1 a 4 años', 'Menores de 1 año') & input$SEXO != 'Ambos') {
       poblaciones <- poblaciones %>%
-        filter(#DSB == input$DSB,
-          #MUN == input$MUNICIPIO,
-          AÑO == input$AÑO,
-          EDAD_QUIN %in% lista_edad[[input$EDAD_QUIN]], 
-          SEXO == input$SEXO) %>%
+        filter(#DSB %in% input$DSB,
+          #MUN %in% input$MUNICIPIO,
+          AÑO %in% input$AÑO,
+          EDAD_QUIN %in% lista_edad[[input$EDAD]], 
+          SEXO %in% input$SEXO) %>%
         summarise(poblacion = sum(POB, na.rm = T))
     }
   })
   
   def_cl <- reactive({
-    if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>% 
-        filter(AÑO == input$AÑO)
+        filter(AÑO %in% input$AÑO)
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               AÑO == input$AÑO)
+        filter(DSBRESIDENCIA %in% input$DSB,
+               AÑO %in% input$AÑO)
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO)
+        filter(MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO)
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO)
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+        filter(DSBRESIDENCIA %in% input$DSB,
+               MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO)
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD != 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>% 
-        filter(AÑO == input$AÑO, 
+        filter(AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]])
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD != 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]])
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO,
+        filter(MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO,
                EDAD_años %in% lista_edad[[input$EDAD]])
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO == 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO %in% 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]])
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>% 
-        filter(AÑO == input$AÑO, 
+        filter(AÑO %in% input$AÑO, 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               AÑO %in% input$AÑO, 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO, 
+        filter(MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO, 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD == 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD %in% 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO, 
                SEXOD %in% lista_sexo[[input$SEXO]])
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>% 
-        filter(AÑO == input$AÑO, 
+        filter(AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]], 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
-    } else if (input$DSB != 'Todos' & input$MUNICIPIO == 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB != 'Todos' & input$MUNICIPIO %in% 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]], 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
-    } else if (input$DSB == 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
+    } else if (input$DSB %in% 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO,
+        filter(MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO,
                EDAD_años %in% lista_edad[[input$EDAD]], 
                SEXOD %in% lista_sexo[[input$SEXO]])
       
     } else if (input$DSB != 'Todos' & input$MUNICIPIO != 'Todos' & input$EDAD != 'General' & input$SEXO != 'Ambos') {
       defunciones <- defunciones %>%
-        filter(DSBRESIDENCIA == input$DSB,
-               MUNICIPIORESIDENCIA == opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN == input$MUNICIPIO],
-               AÑO == input$AÑO, 
+        filter(DSBRESIDENCIA %in% input$DSB,
+               MUNICIPIORESIDENCIA %in% opciones_DSB$MUNICIPIORESIDENCIA[opciones_DSB$MUN %in% input$MUNICIPIO],
+               AÑO %in% input$AÑO, 
                EDAD_años %in% lista_edad[[input$EDAD]], 
                SEXOD %in% lista_sexo[[input$SEXO]])
     }
